@@ -1,6 +1,5 @@
 # ES6 Travel
 
----
 #创建es6项目
 在项目中应用es6的方法有很多种，这里选用了babel+broswerify+grunt的方法。其它方法也会在后面提到。
 ##babel+broswerify
