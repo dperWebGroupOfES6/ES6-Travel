@@ -1,7 +1,4 @@
-title: ES6 Travel
-date: 2015-10-01
-categories: ES6
-tags: [ES6, Babel, Grunt]
+# ES6 Travel
 
 ---
 #创建es6项目
