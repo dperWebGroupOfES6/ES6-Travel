@@ -1,0 +1,21 @@
+{
+  "name": "babel-broswerify",
+  "version": "1.0.0",
+  "description": "es6 babel broswerify grunt",
+  "main": "dist/module.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "babelify": "^6.1.0",
+    "grunt-browserify": "^3.8.0",
+    "grunt-contrib-watch": "^0.6.1"
+  },
+  "keywords": [
+    "es6",
+    "babel"
+  ],
+  "author": "qianwen.ma",
+  "license": "ISC"
+}
