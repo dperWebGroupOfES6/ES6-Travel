@@ -7,7 +7,9 @@ tags: [ES6, Babel, Grunt]
 #创建es6项目
 在项目中应用es6的方法有很多种，这里选用了babel+broswerify+grunt的方法。其它方法也会在后面提到。
 ##babel+broswerify
+
 我们先看一下项目结构
+
 ![Alt text](./structure.png)
 
 其中，modules文件夹下包括用ES6编写的所有模块，dist文件夹下包含编译和打包后的ES5文件。
@@ -149,6 +151,7 @@ grunt build
 ##FIS3+fis-parser-babel2
 fis3推出了插件来支持babel,所以我们可以通过这个来创建项目。
 具体步骤请参见以下文章自行探索。（由于电脑缺少环境，fis未成功安装，所以未能给出demo）
+
 1. [FIS项目构建](http://fis.baidu.com/fis3/docs/beginning/release.html)
 2. [FIS-es6 demo](https://github.com/fex-team/fis3-demo/tree/master/use-es6)
 3. [参考](http://yanhaijing.com/javascript/2015/09/04/try-es2015/)
