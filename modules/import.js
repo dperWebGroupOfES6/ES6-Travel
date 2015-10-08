@@ -7,6 +7,7 @@ let square = (b) => {
 };
 let variable = 8;
 
+const PI = 3.14;
 class MyClass {
     constructor(credentials) {
         this.name = credentials.name;
@@ -17,4 +18,4 @@ class MyClass {
     }
 }
 
-export { sum, square, variable, MyClass };
+export { sum, square, variable, PI, MyClass };

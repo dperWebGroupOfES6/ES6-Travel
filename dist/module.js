@@ -17,6 +17,8 @@ var square = function square(b) {
 };
 var variable = 8;
 
+var PI = 3.14;
+
 var MyClass = (function () {
     function MyClass(credentials) {
         _classCallCheck(this, MyClass);
@@ -35,6 +37,7 @@ var MyClass = (function () {
 exports.sum = sum;
 exports.square = square;
 exports.variable = variable;
+exports.PI = PI;
 exports.MyClass = MyClass;
 
 },{}],2:[function(require,module,exports){
@@ -48,12 +51,25 @@ var _import = require('./import');
 console.log(_import.square(5)); // 25
 
 var cred = {
-  name: 'Ritesh Kumar',
-  enrollmentNo: 11115078
+    name: 'Ritesh Kumar',
+    enrollmentNo: 11115078
 };
 var x = new _import.MyClass(cred);
 
 console.log(x.getName()); //Ritesh Kumar
+console.log(_import.PI);
 console.log("test grunt command");
+var s = 'hello';
+for (var i = 0; i < s.length; i++) {
+    console.log(s[i]);
+}
+console.log(i); // 5
+var _ref = [];
+var foo = _ref[0];
+var _ref2 = [1];
+var bar = _ref2[0];
+var tmp = _ref2[1];
+
+console.log(foo, bar, tmp);
 
 },{"./import":1}]},{},[2]);
