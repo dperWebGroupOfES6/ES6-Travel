@@ -173,15 +173,15 @@ fis3推出了插件来支持babel,所以我们可以通过这个来创建项目�
 ---
 #ES6新特性
 - [let和const命令](#let和const)
-- [变量的解构赋值](#变量的解构赋值)
+- [变量的解构赋值](#量的解构赋值变)
 - 字符串的扩展
 - 正则的扩展
 - 数值的扩展
 - 数组的扩展
-- 函数的扩展
-- 对象的扩展
-- Symbol
-- Proxy和Reflect
+- [函数的扩展](#函数的扩展)
+- [对象的扩展](#对象的扩展)
+- [Symbol](#Symbol)
+- [Proxy和Reflect](#Proxy和Reflect)
 - 二进制数组
 - Set和Map数据结构
 - Iterator和for...of循环
@@ -520,3 +520,317 @@ move(); // [0, 0]
 - 函数参数的默认值
 - 遍历Map结构
 - 输入模块的指定方法
+
+## 函数的扩展
+### 函数参数的默认值
+```
+let functionExt = {}；
+```
+#### 定义了默认值的参数，必须是函数的尾部参数，其后不能再有其他无默认值的参。
+```
+functionExt.paramOne = function(x = 2, y) { //报错
+    return x + y;
+}
+```
+正确写法是:
+```
+functionExt.paramOne = function(x, y = 2) {
+    return x + y;
+}
+functionExt.paramOne(1); //3
+```
+#### 如果传入undefined，将触发该参数等于默认值，null则没有这个效果。
+```
+functionExt.paramTwo = function(x = 1, y = 2) {
+    console.log('x:' + x + ',y:' + y);
+};
+functionExt.paramTwo(undefined,null); //x:1,y:null
+```
+#### 指定了默认值以后，函数的length属性，将返回没有指定默认值的参数个数。也就是说，指定了默认值后，length属性将失真。
+```
+console.log(functionExt.paramOne.length); //1
+console.log(functionExt.paramTwo.length); //0
+```
+#### 利用参数默认值，可以指定某一个参数不得省略，如果省略就抛出一个错误。
+```
+functionExt.paramException = function(mustBeProvided = function() {
+    throw new Error('Missing parameter~~');
+}()){
+    return mustBeProvided;
+};
+functionExt.paramException(); // Error('Missing parameter~~')
+```
+#### 参数默认值所处的作用域，不是全局作用域，而是函数作用域。
+```
+var x = 3, y = 3;
+functionExt.paramTwo = function(x = 1, y = 2) {
+    console.log('x:' + x + ',y:' + y);
+}
+functionExt.paramTwo(); //x:1,y:2
+```
+注：参数变量是默认声明的，所以不能用let或const再次声明。
+
+
+#### [参数默认值可以与解构赋值，联合起来使用。](#函数参数的解构赋值)
+
+### rest参数
+rest参数中的变量代表一个数组，用于获取函数的多余参数，这样就不需要使用arguments对象了。rest参数搭配的变量是一个数组，该变量将多余的参数放入数组中。
+#### rest参数之后不能再有其他参数（即只能是最后一个参数），否则会报错。
+```
+functionExt.rest = function(param1,...values) {
+    values.forEach(function(value) {
+        console.log(value);
+    });
+};
+functionExt.rest(1,2,3); //2 3
+```
+#### 函数的length属性，不包括rest参数。
+```
+console.log(functionExt.rest.length); //1
+```
+### 扩展运算符...
+扩展运算符（spread）是三个点（...）。它好比rest参数的逆运算，将一个数组转为用逗号分隔的参数序列。该运算符主要用于函数调用。
+```
+functionExt.spread = function(argsArry) {
+    function sum(x, y, z){
+       return x + y + z;
+    }
+    return sum(...argsArry);
+};
+console.log(functionExt.spread([2,3,4])); //9
+```
+####扩展运算符原理
+扩展运算符内部调用的是数据结构的Iterator接口，因此只要具有Iterator接口的对象，都可以使用扩展运算符，比如Map结构。Generator函数运行后，返回一个遍历器对象，因此也可以使用扩展运算符。
+```
+var go = function*(){
+  yield 1;
+  yield 2;
+  yield 3;
+};
+
+[...go()] // [1, 2, 3]
+```
+任何类似数组的对象，都可以用扩展运算符转为真正的数组。
+
+####扩展运算符常用场景
+扩展运算符可简化不能数组传值的场景，如apply和Max.math等。
+ES5写法中，push方法的参数不能是数组，所以只好通过apply方法变通使用push方法。有了扩展运算符，就可以直接将数组传入push方法。
+```
+functionExt.spreadPush = function(argsArry_s,argsArry_d){
+    argsArry_d.push(...argsArry_s);
+    return [...argsArry_d];
+}
+var arry1 = [1,2,3];
+var arry2 = [4,5,6];
+console.log(functionExt.spreadPush(arry1,arry2)); //[4, 5, 6, 1, 2, 3]
+```
+扩展运算符可以让函数返回多个值，还可以将字符串转为真正的数组。
+```
+console.log([..."hello"]); //["hello"]
+```
+扩展运算符也可以与解构赋值结合起来，用于生成数组。
+```
+const [first, ...rest] = [];
+first // undefined
+rest  // []:
+```
+如果将扩展运算符用于数组赋值，只能放在参数的最后一位，否则会报错。
+
+### name属性
+函数的name属性，返回该函数的函数名。对象方法也是函数，因此也有name属性。
+
+####ES5和ES6区别
+匿名函数赋值给一个变量，ES5的name属性，会返回空字符串，而ES6的name属性会返回实际的函数名；如果将一个具名函数赋值给一个变量，则ES5和ES6的name属性都返回这个具名函数原本的名字。
+```
+functionExt.nameFunction = function() {}
+console.log(functionExt.nameFunction); //ES5中为'',ES6中为'nameFunction'
+```
+####只有具名函数才有name这个属性，匿名函数是没有的。
+```
+'name' in (function () {}) // false
+'name' in (() => {} // false
+```
+### 箭头函数
+箭头函数是定义函数的简洁方式。
+```
+functionExt.arrowParam = a => console.log(a );
+functionExt.arrowParam(1); //1
+```
+左边为函数传入的参数，右边为方法的具体内容。
+
+####使用方法
+如果箭头函数不需要参数或需要多个参数，就使用一个圆括号代表参数部分。
+```
+functionExt.arrowParams = (a, b) => console.log(a + b);
+functionExt.arrowParams(1,2); //3
+```
+如果箭头函数的代码块部分多于一条语句，就要使用大括号将它们括起来，并且使用return语句返回；由于大括号被解释为代码块，所以如果箭头函数直接返回一个对象，必须在对象外面加上括号。
+```
+functionExt.arrowParams = (a, b) => {return a + b;};
+```
+等同于：
+```
+functionExt.arrowParams = (a, b) => a + b;
+```
+```
+functionExt.arrowParamsObject  = (a, b) => ({a, b});
+console.log(functionExt.arrowParamsObject(1,2)); //{a: 1, b: 2}
+```
+箭头函数的一个用处是简化回调函数。
+```
+// 正常函数写法
+[1,2,3].map(function (x) {
+  return x * x;
+});
+// 箭头函数写法
+[1,2,3].map(x => x * x);
+```
+
+####注意点:
+函数体内的this对象，绑定定义时所在的对象，而不是使用时所在的对象。
+不可以当作构造函数，也就是说，不可以使用new命令，否则会抛出一个错误。
+不可以使用arguments对象，该对象在函数体内不存在。如果要用，可以用Rest参数代替。
+不可以使用yield命令，因此箭头函数不能用作Generator函数。
+
+
+### 函数绑定
+函数绑定运算符是并排的两个双冒号（::），双冒号左边是一个对象，右边是一个函数。该运算符会自动将左边的对象，作为上下文环境（即this对象），绑定到右边的函数上面。
+####使用方式
+如果双冒号左边为空，右边是一个对象的方法，则等于将该方法绑定在该对象上面。
+```
+var person = {
+    name: 'ES6'
+};
+var sayHello = function() {
+    console.log('hello,' + this.name);
+};
+person::sayHello(); //hello,ES6
+```
+由于双冒号运算符返回的还是原对象，因此可以采用链式写法。
+```
+var sayByebye = function() {
+    console.log('byebye,' + this.name);
+};
+person::sayHello()::sayByebye(); //hello,ES6 byebye,ES6
+```
+### 尾调用优化
+某个函数的最后一步是调用另一个函数
+####原理
+函数调用会在内存形成一个“调用记录”，又称“调用帧”（call frame）,所有的调用帧，就形成一个“调用栈”（call stack）。
+###使用方法
+尾调用由于是函数的最后一步操作，所以不需要保留外层函数的调用帧。
+只有不再用到外层函数的内部变量，内层函数的调用帧才会取代外层函数的调用帧，否则就无法进行“尾调用优化”。
+
+
+### 尾递归
+函数调用自身，称为递归。如果尾调用自身，就称为尾递归。
+####尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误。
+####尾递归的实现，往往需要改写递归函数，确保最后一步只调用自身。做到这一点的方法，就是把所有用到的内部变量改写成函数的参数。
+####一旦使用递归，就最好使用尾递归。
+####只有开启严格模式，尾调用优化才会生效。
+
+### 函数参数的尾逗号
+####ES7有一个提案，允许函数的最后一个参数有尾逗号（trailing comma）。
+
+## 对象的扩展
+```
+let ObjectExt = {};
+```
+###属性的简洁表示法
+####ES6允许直接写入变量和函数，作为对象的属性和方法。
+```
+ObjectExt.getPerson = function() {
+    var name = 'yanxi.he';
+    var age = 25;
+    var sayHello =  function() {
+        console.log('hello');
+    }
+    return {name, age, sayHello};
+}
+```
+####赋值器和取值器，也可以采用简洁写法。（ES5）
+
+###属性名表达式
+ES6允许字面量定义对象时，用表达式作为对象的属性名，即把表达式放在方括号内。
+- 表达式还可以用于定义方法名。
+- 属性名表达式与简洁表示法，不能同时使用，会报错。
+
+###方法的name属性
+- 如果使用了取值函数，则会在方法名前加上get。如果是存值函数，方法名的前面会加上set。
+- bind方法创造的函数，name属性返回“bound”加上原函数的名字；Function构造函数创造的函数，name属性返回“anonymous”。
+- 如果对象的方法是一个Symbol值，那么name属性返回的是这个Symbol值的描述。
+
+###Object.is()
+####功能
+Object.is用来比较两个值是否严格相等。它与严格比较运算符（===）的行为基本一致。
+```
+console.log(Object.is(124,12));
+```
+####与比较运算符不同之处
+有两个：一是+0不等于-0，二是NaN等于自身。
+
+###Object.assign()
+将源对象（source）的所有可枚举属性，复制到目标对象（target）。它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。
+- 它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。
+- Object.assign只拷贝自身属性，不可枚举的属性（enumerable为false）和继承的属性不会被拷贝。
+- 属性名为Symbol值的属性，也会被Object.assign拷贝。
+- 对于嵌套的对象，Object.assign的处理方法是替换，而不是添加。
+- 为对象添加属性、为对象添加方法、克隆对象、合并多个对象为属性指定默认值
+- ES6新增了两个操作，会忽略enumerable为false的属性。
+  Object.assign()：只拷贝对象自身的可枚举的属性
+  Reflect.enumerate()：返回所有for...in循环会遍历的属性
+
+###getOwnPropertyDescriptor
+
+###Object.observe()，Object.unobserve()
+Object.observe方法用来监听对象（以及数组）的变化。一旦监听对象发生变化，就会触发回调函数。
+####回调函数的changes参数是一个数组，代表对象发生的变化。下面是一个更完整的例子。
+####Object.observe方法目前共支持监听六种变化。
+- add：添加属性
+- update：属性值的变化
+- delete：删除属性
+- setPrototype：设置原型
+- reconfigure：属性的attributes对象发生变化
+- preventExtensions：对象被禁止扩展（当一个对象变得不可扩展时，也就不必再监听了）
+#### 3.Object.observe方法还可以接受第三个参数，用来指定监听的事件种类。
+#### 4.Object.unobserve方法用来取消监听。
+
+###对象的扩展运算符
+- Rest参数用于从一个对象取值，相当于将所有可遍历的、但尚未被读取的属性，分配到指定的对象上面。
+- Rest参数的拷贝是浅拷贝，即如果一个键的值是复合类型的值（数组、对象、函数）、那么Rest参数拷贝的是这个值的引用，而不是这个值的副本。
+- Rest参数不会拷贝继承自原型对象的属性。
+- 扩展运算符用于取出参数对象的所有可遍历属性，拷贝到当前对象之中。
+- 如果把自定义属性放在扩展运算符前面，就变成了设置新对象的默认属性值。
+- 扩展运算符的参数对象之中，如果有取值函数get，这个函数是会执行的。
+- 如果扩展运算符的参数是null或undefined，这个两个值会被忽略，不会报错。
+
+##Symbol
+
+##Proxy和Reflect
+### Proxy
+ES6原生提供Proxy构造函数，用来生成Proxy实例。
+    #### var proxy = new Proxy(target, handler)
+    #### handler中拦截操作
+    -（1）get(target, propKey, receiver)
+    -（2）set(target, propKey, value, receiver)
+    -（3）has(target, propKey)
+    -（4）deleteProperty(target, propKey)
+    -（5）enumerate(target)
+    -（6）hasOwn(target, propKey)
+    -（7）ownKeys(target)
+    -（8）getOwnPropertyDescriptor(target, propKey)
+    -（9）defineProperty(target, propKey, propDesc)
+    -（10）preventExtensions(target)
+    -（11）getPrototypeOf(target)
+    -（12）isExtensible(target)
+    -（13）setPrototypeOf(target, proto)
+    -（14）apply(target, object, args)
+    -（15）construct(target, args, proxy)
+
+### Proxy.revocable()
+  Proxy.revocable方法返回一个可取消的Proxy实例。
+
+### Reflect
+  Reflect对象的方法与Proxy对象的方法一一对应，只要是Proxy对象的方法，就能在Reflect对象上找到对应的方法。
+
+
