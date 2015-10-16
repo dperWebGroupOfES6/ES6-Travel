@@ -175,7 +175,7 @@ fis3推出了插件来支持babel,所以我们可以通过这个来创建项目�
 - [let和const命令](#let和const)
 - [变量的解构赋值](#量的解构赋值变)
 - 字符串的扩展
-- 正则的扩展
+- [正则的扩展](#正则的扩展)
 - 数值的扩展
 - 数组的扩展
 - [函数的扩展](#函数的扩展)
@@ -521,6 +521,153 @@ move(); // [0, 0]
 - 遍历Map结构
 - 输入模块的指定方法
 
+##正则的扩展
+
+##构造函数的修改
+以前的构造函数只支持`字符串`
+
+```javascript
+  var regex = new RegExp('xyz','i');
+  var regex = /xyz/i;
+```
+
+现在的接受`正则表达式`作为参数，就是传入正则表达式的拷贝。
+
+如果有第二个参数的话，则将会覆盖`原修饰符`，如果没有的话，则使用传入的表达式的修饰符。
+
+```javascript
+  var regex = new RegExp(/xyz/ig,'g');
+  console.log(regex.flags);//g
+```
+
+##新的修饰符
+###u修饰符
+`unicode模式`
+
+用来正确处理大于\uFFFF的Unicode字符。也就是说，会正确处理四个字节的UTF-16编码。
+ECMAscript正则表达式支持就不够细致
+一直的就不支持4个字节的UTF-16
+
+- '啊'的是\u554a，’啊’.length //1
+- ‘𠮷’就是\ud842\udfb7，’𠮷’.length //2
+
+```javascript
+  /^\uD83D/.test('\uD83D\uDC2A')
+  // true
+  /^\uD83D/u.test('\uD83D\uDC2A')
+  //false
+  //es5不支持4个字节的UTF-16，会将齐识别为两个字符
+```
+####.字符
+- 正则里面是匹配除了换行符以外的任意字符。
+- es5不包括码点大于0xFFFF的Unicode字符，加上了u才能识别
+
+```javascript
+  var s = "𠮷";
+  console.log(/^.$/.test(s)); //false
+  console.log(/^.$/u.test(s)); //true
+```
+
+不添加u字符的话，上面的字符串就会被当成两个字符从而匹配失败
+
+  ‘𠮷’实际上就是这个\ud842\udfb7
+
+####uincode字符表示法
+
+```javascipt
+  /\u{61}/.test('a') // false
+  //简单的61次u
+  /\u{61}/u.test('a') // true
+  //识别为u0061
+  /\u{20BB7}/u.test('𠮷') // true
+  //想写超过四位的只能这么表示
+```
+
+如果想使用这种大括号的形式来表示unicode字符
+
+- 前面需要加上\u之外
+- 还需要加上u修饰符
+
+####量词
+
+```javascript
+  /a{2}/.test('aa') // true
+  /a{2}/u.test('aa') // true
+  /𠮷{2}/.test('𠮷𠮷') // false
+  //  /\ud842\udfb7{2}/.test('\ud842\udfb7\ud842\udfb7’);
+  /𠮷{2}/u.test('𠮷𠮷') // true
+```
+
+也就是下面的情况是可以的
+console.log(/𠮷{2}/.test('\ud842\udfb7\udfb7')); //true
+
+####预定义模式
+
+```javascript
+  /^\S$/.test('𠮷') // false
+  /^\S$/u.test('𠮷') // true
+```
+
+\S能够识别非空白字符，然后通过u修饰符可以正确地将两位的UTF-16识别为一位，故而匹配了
+与此相同的还有\D(非数字),\W
+
+    \w在正则中可以识别`汉字`，但是ECMA的正则实现不全面，不能匹配汉字。
+
+####i修饰符
+如果想识别非规范的字符，必须得加上u
+
+```javascript
+  /[a-z]/i.test('\u212A') // false
+  /[a-z]/iu.test('\u212A') // true
+```
+
+###y修饰符
+“粘连”（sticky）修饰符，表现与`g修饰符`很像，g只要剩下的存在匹配就行，但是y要求必须从剩下的第一位开始匹配
+  
+  注意第一次也必须从lastindex匹配，也就是默认的0开始
+  
+```javascript
+  var s = "aaa_aa_a";
+  var r1 = /a+/g;
+  console.log(r1.exec(s));
+  console.log(r1.exec(s));
+  var r2 = /a+/y;
+  console.log(r2.exec(s));
+  console.log(r2.exec(s));
+```
+
+    babel，traceur几个转换器暂未支持，还是firefox给力
+
+###sticky属性
+与y修饰符相匹配，这个表示是否设置了y
+
+###flags属性
+会返回正则表达式的修饰符
+就和source属性会返回表达式的正文一样
+
+```javascript
+  // 返回正则表达式的修饰符
+  /abc/ig.flags
+  // 'gi'
+  /abc/ig.sources
+  //abc
+```
+
+###字符串的正则方法
+字符串对象使用正则表达式的四个方法:
+match，replace，search，split
+
+ES6在语言的内部改为了使用RegExp的实例方法
+    
+    所有与正则相关的方法，都定义到了RegExp对象上
+
+###RegExp.escape
+静态方法是来将字符串转义成正则模式的。
+并没有成为6或者7的官方方法，只是有这个需求。
+  
+  就是将一些保留字符进行转义
+>>>>>>> c25fcf0af4838ab9438dc31671e334287ce77f33
+
 ## 函数的扩展
 ### 函数参数的默认值
 ```
@@ -832,5 +979,3 @@ ES6原生提供Proxy构造函数，用来生成Proxy实例。
 
 ### Reflect
   Reflect对象的方法与Proxy对象的方法一一对应，只要是Proxy对象的方法，就能在Reflect对象上找到对应的方法。
-
-
