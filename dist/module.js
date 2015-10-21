@@ -6,6 +6,8 @@
 
 exports.__esModule = true;
 
+var _objectExt$book;
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var sum = function sum(a) {
@@ -112,20 +114,42 @@ functionExt.arrowArrayIncre = function (argsArry) {
     });
     return argsArry;
 };
-exports.functionExt = functionExt;
 
-var ObjectExt = {
-    getPerson: function getPerson() {
-        var name = 'ES6';
-        var age = 25;
-        var sayHello = function sayHello() {
-            console.log('hello');
-        };
-        return {
-            name: name, age: age, sayHello: sayHello
-        };
-    }
+var objectExt = {};
+
+objectExt.getPerson = function () {
+    var name = 'ES6';
+    var age = 25;
+    var sayHello = function sayHello() {
+        console.log('hello');
+    };
+    return {
+        name: name, age: age, sayHello: sayHello
+    };
 };
+
+var propKey = 'name';
+
+objectExt.book = (_objectExt$book = {}, _objectExt$book[propKey] = 'ES6', _objectExt$book['total_' + 'chapter'] = 20, _objectExt$book['print_' + propKey] = function () {
+    console.log(this[propKey]);
+}, _objectExt$book);
+
+objectExt.nameObject = Object.defineProperties({
+    fullName: function fullName() {
+        console.log('ECMAScript 6 Primer');
+    }
+}, {
+    getFullName: {
+        get: function get() {
+            return 'ECMAScript 6 Primer';
+        },
+        configurable: true,
+        enumerable: true
+    }
+});
+
+exports.functionExt = functionExt;
+exports.objectExt = objectExt;
 
 },{}],2:[function(require,module,exports){
 /**
@@ -185,6 +209,7 @@ console.log([].concat("hello")); //["hello"]
 
 console.log(_import.functionExt.nameFunction.name); //nameFunction
 
+//箭头函数
 _import.functionExt.arrowParam(1); //1
 
 _import.functionExt.arrowParams(1, 2); //3
@@ -193,6 +218,7 @@ console.log(_import.functionExt.arrowParamsObject(1, 2));
 
 console.log(_import.functionExt.arrowArrayIncre([1, 2, 3]));
 
+//函数绑定
 var person = {
     name: 'ES6'
 };
@@ -204,5 +230,47 @@ var sayByebye = function sayByebye() {
     console.log('byebye,' + this.name);
 };
 // person::sayHello()::sayByebye();
+
+//对象扩展
+
+console.log(_import.objectExt.getPerson());
+
+var propKey = 'name';
+
+_import.objectExt.book['print_' + propKey](); //ES6
+console.log(_import.objectExt.nameObject.fullName.name); //fullName
+console.log(_import.objectExt.nameObject.getFullName.name); //
+
+var target = { a: 1 };
+var source1 = { b: 2 };
+var source2 = { c: 3 };
+Object.assign(target, source1, source2);
+console.log(target.b); //2
+var source3 = {};
+source3.prototype.d = 5;
+Object.assign(target, source3);
+console.log(target.d); // Cannot set property 'd' of undefined
+
+//Proxy和Reflect
+var extObject = Object.defineProperties({
+    bar: function bar() {
+        console.log('origin bar');
+    }
+}, {
+    foo: {
+        get: function get() {
+            return this.bar();
+        },
+        configurable: true,
+        enumerable: true
+    }
+});
+var reflectReceiver = {
+    bar: function bar() {
+        console.log('reflect bar');
+    }
+};
+// Reflect.get(extObject, "foo", reflectReceiver);
+// extObject.foo(); // reflect bar
 
 },{"./import":1}]},{},[2]);

@@ -861,32 +861,34 @@ var sayByebye = function() {
 person::sayHello()::sayByebye(); //hello,ES6 byebye,ES6
 ```
 ### 尾调用优化
-某个函数的最后一步是调用另一个函数
+某个函数（实际执行）的最后一步是调用另一个函数。
 ####原理
-函数调用会在内存形成一个“调用记录”，又称“调用帧”（call frame）,所有的调用帧，就形成一个“调用栈”（call stack）。
-###使用方法
-尾调用由于是函数的最后一步操作，所以不需要保留外层函数的调用帧。
+函数调用会在内存形成一个“调用记录”，又称“调用帧”（call frame）,所有的调用帧，就形成一个“调用栈”（call stack）。尾调用由于是函数的最后一步操作，所以不需要保留外层函数的调用帧。
 只有不再用到外层函数的内部变量，内层函数的调用帧才会取代外层函数的调用帧，否则就无法进行“尾调用优化”。
+尾调用优化（Tail call optimization），即只保留内层函数的调用帧，不再用到外层函数的内部变量。
 
 
 ### 尾递归
-函数调用自身，称为递归。如果尾调用自身，就称为尾递归。
-####尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误。
-####尾递归的实现，往往需要改写递归函数，确保最后一步只调用自身。做到这一点的方法，就是把所有用到的内部变量改写成函数的参数。
-####一旦使用递归，就最好使用尾递归。
-####只有开启严格模式，尾调用优化才会生效。
+函数调用自身，称为递归。如果尾调用自身，就称为尾递归。ES6明确规定，所有ECMAScript的实现，都必须部署“尾调用优化”。
+####优点
+尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误。
+####实现方法
+尾递归的实现，往往需要改写递归函数，确保最后一步只调用自身。做到这一点的方法，就是把所有用到的内部变量改写成函数的参数。
+####注意点
+- 一旦使用递归，就最好使用尾递归。
+- 只有开启严格模式，尾调用优化才会生效。
 
 ### 函数参数的尾逗号
-####ES7有一个提案，允许函数的最后一个参数有尾逗号（trailing comma）。
+ES7有一个提案，允许函数的最后一个参数有尾逗号（trailing comma）。这样为函数添加参数后，版本管理系统只会显示添加的参数所在行为更新状态。
 
 ## 对象的扩展
 ```
-let ObjectExt = {};
+let objectExt = {};
 ```
 ###属性的简洁表示法
 ####ES6允许直接写入变量和函数，作为对象的属性和方法。
 ```
-ObjectExt.getPerson = function() {
+objectExt.getPerson = function() {
     var name = 'yanxi.he';
     var age = 25;
     var sayHello =  function() {
@@ -894,18 +896,52 @@ ObjectExt.getPerson = function() {
     }
     return {name, age, sayHello};
 }
+objectExt.getPerson();
+/* 返回一个如下的对象：
+{
+  age: 25,
+  name: "ES6",
+  sayHello: sayHello(),
+  __proto__: Object
+}
+*/
 ```
 ####赋值器和取值器，也可以采用简洁写法。（ES5）
 
 ###属性名表达式
-ES6允许字面量定义对象时，用表达式作为对象的属性名，即把表达式放在方括号内。
-- 表达式还可以用于定义方法名。
+ES6允许字面量定义对象时，用表达式作为对象的属性名或方法名，即把表达式放在方括号内。
+```
+let propKey = 'name';
+objectExt.book = {
+    [propKey]: 'ES6',
+    ['total_' + 'chapter']: 20,
+    ['print_' + propKey]: function() {
+        console.log(this[propKey]);
+    }
+};
+objectExt.book['print_' + propKey](); //ES6
+```
+####注意点
 - 属性名表达式与简洁表示法，不能同时使用，会报错。
 
 ###方法的name属性
 - 如果使用了取值函数，则会在方法名前加上get。如果是存值函数，方法名的前面会加上set。
+```
+objectExt.nameObject = {
+    fullName: function(){
+        console.log('ECMAScript 6 Primer');
+    },
+    get getFullName(){
+        return 'ECMAScript 6 Primer';
+    }
+};
+console.log(objectExt.nameObject.fullName.name); //fullName
+console.log(objectExt.nameObject.getFullName.name); //undefined
+```
+部分可参见函数扩展中[name属性](#name属性)
 - bind方法创造的函数，name属性返回“bound”加上原函数的名字；Function构造函数创造的函数，name属性返回“anonymous”。
 - 如果对象的方法是一个Symbol值，那么name属性返回的是这个Symbol值的描述。
+
 
 ###Object.is()
 ####功能
@@ -917,17 +953,43 @@ console.log(Object.is(124,12));
 有两个：一是+0不等于-0，二是NaN等于自身。
 
 ###Object.assign()
-将源对象（source）的所有可枚举属性，复制到目标对象（target）。它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。
-- 它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。
+将源对象（source）的所有可枚举属性，复制到目标对象（target）。它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。只要有一个参数不是对象，就会抛出TypeError错误。
+```
+var target = { a: 1 };
+var source1 = { b: 2 };
+var source2 = { c: 3 };
+Object.assign(target, source1, source2);
+console.log(target.b); //2
+```
+###注意点
 - Object.assign只拷贝自身属性，不可枚举的属性（enumerable为false）和继承的属性不会被拷贝。
-- 属性名为Symbol值的属性，也会被Object.assign拷贝。
-- 对于嵌套的对象，Object.assign的处理方法是替换，而不是添加。
-- 为对象添加属性、为对象添加方法、克隆对象、合并多个对象为属性指定默认值
-- ES6新增了两个操作，会忽略enumerable为false的属性。
-  Object.assign()：只拷贝对象自身的可枚举的属性
-  Reflect.enumerate()：返回所有for...in循环会遍历的属性
+```
 
-###getOwnPropertyDescriptor
+```
+- 属性名为Symbol值的属性，也会被Object.assign拷贝。
+```
+
+```
+- 对于嵌套的对象，Object.assign的处理方法是替换，而不是添加。
+```
+
+```
+####用途
+为对象添加属性、为对象添加方法、克隆对象、合并多个对象为属性指定默认值
+```
+
+```
+
+
+###属性的可枚举性
+ES5有三个操作会忽略enumerable为false的属性。
+- for...in 循环：只遍历对象自身的和继承的可枚举的属性
+- Object.keys()：返回对象自身的所有可枚举的属性的键名
+- JSON.stringify()：只串行化对象自身的可枚举的属性
+
+ES6新增了两个操作，会忽略enumerable为false的属性。
+- Object.assign()：只拷贝对象自身的可枚举的属性
+- Reflect.enumerate()：返回所有for...in循环会遍历的属性
 
 ###Object.observe()，Object.unobserve()
 Object.observe方法用来监听对象（以及数组）的变化。一旦监听对象发生变化，就会触发回调函数。
@@ -955,27 +1017,55 @@ Object.observe方法用来监听对象（以及数组）的变化。一旦监听
 
 ##Proxy和Reflect
 ### Proxy
-ES6原生提供Proxy构造函数，用来生成Proxy实例。
-    #### var proxy = new Proxy(target, handler)
-    #### handler中拦截操作
-    -（1）get(target, propKey, receiver)
-    -（2）set(target, propKey, value, receiver)
-    -（3）has(target, propKey)
-    -（4）deleteProperty(target, propKey)
-    -（5）enumerate(target)
-    -（6）hasOwn(target, propKey)
-    -（7）ownKeys(target)
-    -（8）getOwnPropertyDescriptor(target, propKey)
-    -（9）defineProperty(target, propKey, propDesc)
-    -（10）preventExtensions(target)
-    -（11）getPrototypeOf(target)
-    -（12）isExtensible(target)
-    -（13）setPrototypeOf(target, proto)
-    -（14）apply(target, object, args)
-    -（15）construct(target, args, proxy)
+Proxy可以理解成，在目标对象之前架设一层“拦截”，外界对该对象的访问，都必须先通过这层拦截，实际上重载（overload）了点运算符，即用自己的定义覆盖了语言的原始定义。ES6原生提供Proxy构造函数，用来生成Proxy实例。
+####语法
+```
+ var proxy = new Proxy(target, handler);
+```
+其中new Proxy()表示生成一个Proxy实例，target参数表示所要拦截的目标对象，handler参数也是一个对象，用来定制拦截行为。
+#### handler中拦截操作
+-（1）get(target, propKey, receiver)
+-（2）set(target, propKey, value, receiver)
+-（3）has(target, propKey)
+-（4）deleteProperty(target, propKey)
+-（5）enumerate(target)
+-（6）hasOwn(target, propKey)
+-（7）ownKeys(target)
+-（8）getOwnPropertyDescriptor(target, propKey)
+-（9）defineProperty(target, propKey, propDesc)
+-（10）preventExtensions(target)
+-（11）getPrototypeOf(target)
+-（12）isExtensible(target)
+-（13）setPrototypeOf(target, proto)
+-（14）apply(target, object, args)
+-（15）construct(target, args, proxy)
+####注意点
 
 ### Proxy.revocable()
-  Proxy.revocable方法返回一个可取消的Proxy实例。
+Proxy.revocable方法返回一个可取消的Proxy实例。
 
 ### Reflect
-  Reflect对象的方法与Proxy对象的方法一一对应，只要是Proxy对象的方法，就能在Reflect对象上找到对应的方法。
+将Object对象的一些明显属于语言层面的方法，放到Reflect对象上，未来的新方法将只部署在Reflect对象上。Reflect对象的方法与Proxy对象的方法一一对应，只要是Proxy对象的方法，就能在Reflect对象上找到对应的方法。
+####使用方法
+
+####方法列表
+- Reflect.getOwnPropertyDescriptor(target,name)
+- Reflect.defineProperty(target,name,desc)
+- Reflect.getOwnPropertyNames(target)
+- Reflect.getPrototypeOf(target)
+- Reflect.setPrototypeOf(target, prototype)
+- Reflect.deleteProperty(target,name)
+- Reflect.enumerate(target)
+- Reflect.freeze(target)
+- Reflect.seal(target)
+- Reflect.preventExtensions(target)
+- Reflect.isFrozen(target)
+- Reflect.isSealed(target)
+- Reflect.isExtensible(target)
+- Reflect.has(target,name)
+- Reflect.hasOwn(target,name)
+- Reflect.keys(target)
+- Reflect.get(target,name,receiver)
+- Reflect.set(target,name,value,receiver)
+- Reflect.apply(target,thisArg,args)
+- Reflect.construct(target,args)

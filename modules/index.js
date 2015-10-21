@@ -24,7 +24,7 @@ var [bar, tmp] = [1];
 console.log(foo,bar,tmp);
 
 import {
-    functionExt
+    functionExt,objectExt
 }
 from './import';
 functionExt.paramTwo(undefined, null);
@@ -55,6 +55,7 @@ console.log([...
 
 console.log(functionExt.nameFunction.name); //nameFunction
 
+//箭头函数
 functionExt.arrowParam(1); //1
 
 functionExt.arrowParams(1, 2); //3
@@ -63,6 +64,7 @@ console.log(functionExt.arrowParamsObject(1, 2));
 
 console.log(functionExt.arrowArrayIncre([1, 2, 3]));
 
+//函数绑定
 var person = {
     name: 'ES6'
 };
@@ -74,3 +76,40 @@ var sayByebye = function() {
     console.log('byebye,' + this.name);
 };
 // person::sayHello()::sayByebye();
+
+
+//对象扩展
+
+console.log(objectExt.getPerson());
+
+let propKey = 'name';
+
+objectExt.book['print_' + propKey](); //ES6
+console.log(objectExt.nameObject.fullName.name); //fullName
+console.log(objectExt.nameObject.getFullName.name); //
+
+var target = { a: 1 };
+var source1 = { b: 2 };
+var source2 = { c: 3 };
+Object.assign(target, source1, source2);
+console.log(target.b); //2
+var source3 = {};
+source3.prototype.d = 5;
+Object.assign(target, source3);
+console.log(target.d); // Cannot set property 'd' of undefined
+
+
+//Proxy和Reflect
+var extObject = {
+  get foo() { return this.bar(); },
+  bar: function() {
+    console.log('origin bar');
+  }
+}
+var reflectReceiver = {
+    bar: function(){
+        console.log('reflect bar');
+    }
+};
+// Reflect.get(extObject, "foo", reflectReceiver);
+// extObject.foo(); // reflect bar

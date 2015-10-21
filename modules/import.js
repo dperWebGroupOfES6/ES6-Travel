@@ -72,19 +72,42 @@ functionExt.arrowArrayIncre = argsArry => {
     argsArry.map(x => x + 1);
     return argsArry;
 };
-export {
-    functionExt
+
+
+let objectExt = {
 };
 
-let ObjectExt = {
-    getPerson: function() {
-        var name = 'ES6';
-        var age = 25;
-        var sayHello = function() {
-            console.log('hello');
-        }
-        return {
-            name, age, sayHello
-        };
+objectExt.getPerson = function() {
+    var name = 'ES6';
+    var age = 25;
+    var sayHello = function() {
+        console.log('hello');
     }
+    return {
+        name, age, sayHello
+    };
+}
+
+let propKey = 'name';
+
+objectExt.book = {
+    [propKey]: 'ES6',
+    ['total_' + 'chapter']: 20,
+    ['print_' + propKey]: function() {
+        console.log(this[propKey]);
+    }
+};
+
+objectExt.nameObject = {
+    fullName: function(){
+        console.log('ECMAScript 6 Primer');
+    },
+    get getFullName(){
+        return 'ECMAScript 6 Primer';
+    }
+};
+
+export {
+    functionExt,
+    objectExt
 };
